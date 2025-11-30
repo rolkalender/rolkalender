@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>pistolkalender</title>
+  <meta name="description" content="Rolkalender" />
+  <style>
+    :root{
+      /* colors */
+      --bg1:#06150e;
+      --bg2:#0b2a1d;
+      --card:#6b0f0f;
+      --accent:#ffe8a3;
+      --gold:#ffd97a;
+      --lock:#8a4444;
+      --red:#c81e1e;
+      --green:#22c55e;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#eef3ff}
+    header{max-width:980px;margin:0 auto;padding:28px 16px;text-align:center}
+    header h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}
+    header p{margin:0;opacity:.9}
+    .wrap{max-width:980px;margin:0 auto;padding:8px 16px 28px}
+
+    /* grid */
+    .grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+    /* luckor o flap effekt */
+    .door{position:relative;aspect-ratio:1/1;border-radius:16px;perspective:800px;isolation:isolate;box-shadow:0 10px 26px rgba(0,0,0,.35);transform:translateY(0);transition:transform .15s ease}
+    .door:hover{transform:translateY(-2px)}
+    .panel{pointer-events:none;position:absolute;inset:0;background:radial-gradient(140% 100% at 10% 10%, #9a1b1b, var(--card));border-radius:16px;border:1px solid rgba(255,255,255,.06)}
+    .flap{pointer-events:none;position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.25));transform-origin:left center;transform:rotateY(0deg);transition:transform .8s cubic-bezier(.2,.8,.2,1), filter .3s ease}
+    .door.open .flap{transform:rotateY(-160deg); filter:brightness(1.05)}
+    .num{position:absolute;top:10px;left:10px;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--gold);font-weight:700;letter-spacing:.3px;font-size:14px}
+    .label{position:absolute;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));font-size:14px}
+    .door.locked .panel{filter:saturate(.6) brightness(.9)}
+    .door.locked .label::after{content:" 🔒 "}
+
+    button.reset{all:unset;position:absolute;inset:0;z-index:3;cursor:pointer;border-radius:16px;display:block;width:100%;height:100%}
+
+    /* modalitet */
+    dialog{border:none;border-radius:18px;max-width:min(760px,95vw);padding:0;background:#0b0f1a;color:#fff;overflow:hidden}
+    dialog::backdrop{background:rgba(0,0,0,.55)}
+    .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#10182a;border-bottom:1px solid #1e2b4a}
+    .mbody{padding:16px}
+    .btn{appearance:none;border:0;background:#2a3b66;color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn:hover{filter:brightness(1.08)}
+    img,video,iframe{width:100%;height:auto;border-radius:10px}
+    audio{width:100%}
+
+    footer{opacity:.8;text-align:center;padding:20px;font-size:13px}
+
+    /* kontrollpanel för snow etc */
+    #snowCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .controls{position:fixed;left:12px;bottom:12px;z-index:5;background:#10182acc;border:1px solid #1e2b4a;padding:10px 12px;border-radius:12px;color:#fff;backdrop-filter:blur(6px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:min(96vw,560px)}
+    .controls label{display:flex;align-items:center;gap:6px;font-size:14px}
+    .controls input[type=range]{width:140px}
+    .ribbon{position:relative;display:inline-block;margin-top:10px;padding:6px 10px 6px 26px;background:linear-gradient(90deg,var(--green),#0da855);border-radius:999px;color:#08210f;font-weight:700}
+    .ribbon::before{content:"🎁";position:absolute;left:6px;top:50%;transform:translateY(-50%)}
+    .switch{appearance:none;width:42px;height:24px;background:#304063;border-radius:999px;position:relative;outline:none;cursor:pointer}
+    .switch:before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s ease}
+    .switch:checked{background:#0da855}
+    .switch:checked:before{transform:translateX(18px)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .controls{display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:240px}
+  </style>
+</head>
+<body>
+  <canvas id="snowCanvas" aria-hidden="true"></canvas>
+  <div class="controls" role="group" aria-label="Site controls">
+    <label>❄️ Snow
+        <input id="snowRange" type="range" min="0" max="500" value="120" aria-label="Snowflake count">
+        <span id="snowCount" class="mono">120</span>
+    </label>
+
+    <label>🎅 Rol
+        <input id="laughSwitch" type="checkbox" class="switch">
+    </label>
+
+    <label>🔫 Pistol
+        <input id="emojiRange" type="range" min="0" max="300" value="0" aria-label="Emoji count">
+        <span id="emojiCount" class="mono">0</span>
+    </label>
+
+    <label> Test mode
+        <input id="unlockSwitch" type="checkbox" class="switch" checked>
+    </label>
+  </div>
+
+
+  <header>
+    <h1>Gabdi's Rolkalender</h1>
+    <p>A gabdition since olden days of gabdihundratalet.
+    </p>
+  </header>
+
+  <div class="wrap">
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </div>
+
+  <dialog id="modal" aria-modal="true">
+    <div class="mhead">
+      <strong id="modalTitle">Treat</strong>
+      <button class="btn" id="closeBtn">Close</button>
+    </div>
+    <div class="mbody" id="modalBody"></div>
+  </dialog>
+
+  <footer>© gabdihundrafyrtiofem - <span id="year"></span></footer>
+
+  <audio id="jingle" preload="auto" src="jingle.mp3"></audio>
+  <audio id="laugh" preload="auto" src="rol.mp3" loop></audio>
+
+  <script>
+  const TREAT_DATA = [
+    { day: 1, type: 'audio', title: 'Suneet Christmas Mental Breakdown', src: 'treats/day1.mp3' },
+    { day: 2, type: 'image', title: 'Khraniteli', src: 'treats/day2.png' },
+    { day: 3, type: 'video', title: 'Erobb wants to know where Santa is', src: 'treats/wheresanta.mp4' }
+  ];
+
+  /* timeconfig om det behövs */
+  const LOCK_TZ = 'Europe/Stockholm';
+  const START_MONTH = 12;
+  const TOTAL_DOORS = 24;
+  let UNLOCK_OVERRIDE = true;
+  const DEBUG_UNLOCK_ALL = new URLSearchParams(location.search).has('debug');
+
+  function todayInTZ(tz){
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' });
+    const parts = fmt.formatToParts(new Date());
+    const get = k => parts.find(p=>p.type===k).value;
+    return { y:+get('year'), m:+get('month'), d:+get('day') };
+  }
+  function isUnlocked(day){
+    if (UNLOCK_OVERRIDE || DEBUG_UNLOCK_ALL) return true;
+    const { m, d } = todayInTZ(LOCK_TZ);
+    return (m > START_MONTH) || (m === START_MONTH && d >= day);
+  }
+  function el(tag, attrs={}, children=[]) {
+    const e=document.createElement(tag);
+    Object.entries(attrs).forEach(([k,v])=>{
+      if (k==='class') e.className=v; else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v); else e.setAttribute(k,v);
+    });
+    (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=> e.append(c.nodeType?c:document.createTextNode(c)));
+    return e;
+  }
+
+  /* helpers, fixa fler */
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  const modalTitle = document.getElementById('modalTitle');
+  let lastOpenedCard = null;
+  document.getElementById('closeBtn').onclick = () => {
+    modalBody.querySelectorAll('audio, video').forEach(el => {
+        el.pause();
+        el.currentTime = 0;
+    });
+
+    modalBody.querySelectorAll('iframe').forEach(f => {
+        f.src = f.src; // reload stoppar playback
+    });
+
+    modal.close();
+    if (lastOpenedCard) {
+        setTimeout(() => lastOpenedCard.classList.remove('open'), 150);
+    }
+  };
+
+
+  function showTreat(treat){
+    modalTitle.textContent = treat.title || `Dag ${treat.day}`;
+    modalBody.innerHTML = '';
+    /* warpade modals, fixa */
+    if (treat.type === 'image') {
+      modalBody.append(el('img', { alt: treat.title||'' , src: treat.src, loading:'lazy' }));
+    } else if (treat.type === 'audio') {
+      modalBody.append(el('audio', { controls: true, src: treat.src }));
+      modalBody.append(el('p', {}, el('a', { href: treat.src, download: '' })));
+    } else if (treat.type === 'video') {
+      const v = el('video', { controls: true, playsinline: true });
+      v.append(el('source',{src:treat.src, type:'video/mp4'}));
+      modalBody.append(v);
+      modalBody.append(el('p', {}, el('a', { href: treat.src, download: '' })));
+    } else if (treat.type === 'youtube') {
+      modalBody.append(el('iframe', { width: '560', height:'315', allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture', allowfullscreen:'', src: treat.src }));
+    } else if (treat.type === 'page' || treat.type === 'game') {
+      modalBody.append(el('iframe', { src: treat.src, style:'min-height:60vh' }));
+    } else {
+      modalBody.append(el('p', {}, 'Unknown treat type.'));
+    }
+    modal.showModal();
+  }
+
+  /* luckobening animation, fixa */
+  const jingle = document.getElementById('jingle');
+  function onDoorClick(card, treat, unlocked){
+    if (!unlocked) return;
+    lastOpenedCard = card;
+    card.classList.add('open');
+    jingle && jingle.play().catch(()=>{});
+    setTimeout(()=> showTreat(treat), 380);
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    const byDay = new Map(TREAT_DATA.map(t=>[t.day,t]));
+
+    for (let day=1; day<=TOTAL_DOORS; day++){
+      const unlocked = isUnlocked(day);
+      const treat = byDay.get(day) || { day, type:'page', title:`Day ${day}`, src:`treats/day${day}.html` };
+      /* flap ganska scuffed */
+      const flap = el('div', { class:'flap' });
+      const displayTitle = unlocked ? (treat.title || `Lucka ${day}`) : `Lucka ${day}`;
+      const content = el('div', { class:'panel' }, [
+        el('div', { class:'num' }, `Lucka ${day}`),
+        el('div', { class:'label' }, displayTitle)
+      ]);
+
+
+      const inner = el('div', { class:'door'+(unlocked?'':' locked') }, [content, flap]);
+      const button = el('button', { class:'reset', 'aria-label': unlocked?`Open day ${day}`:`Day ${day} locked`,
+        onClick: ()=> onDoorClick(inner, treat, unlocked)
+      });
+      inner.appendChild(button);
+      grid.append(inner);
+    }
+  }
+
+  function init(){
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderGrid();
+  }
+
+  init();
+
+  /* behövs för override, ganska decrepit */
+  (function(){
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canvas = document.getElementById('snowCanvas');
+    const rangeSnow = document.getElementById('snowRange');
+    const labelSnow = document.getElementById('snowCount');
+    const rangeEmoji = document.getElementById('emojiRange');
+    const labelEmoji = document.getElementById('emojiCount');
+    const unlockSwitch = document.getElementById('unlockSwitch');
+    unlockSwitch.addEventListener('change', ()=>{ UNLOCK_OVERRIDE = unlockSwitch.checked; renderGrid(); });
+
+    const laughSwitch = document.getElementById('laughSwitch');
+    const laugh = document.getElementById('laugh');
+    laughSwitch.addEventListener('change', ()=>{
+      if (laughSwitch.checked){ laugh.play().catch(()=>{}); }
+      else { laugh.pause(); laugh.currentTime = 0; }
+    });
+
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let snow = [];
+    let emojis = [];
+
+    let desiredSnow = prefersReduced ? 0 : parseInt(new URLSearchParams(location.search).get('snow')||rangeSnow.value,10);
+    let desiredEmoji = parseInt(rangeEmoji.value,10);
+    rangeSnow.value = desiredSnow; labelSnow.textContent = desiredSnow;
+    labelEmoji.textContent = desiredEmoji;
+
+    const DPR = () => Math.min(window.devicePixelRatio||1, 2);
+
+    function resize(){
+      const dpr = DPR();
+      const w = Math.floor(window.innerWidth * dpr);
+      const h = Math.floor(window.innerHeight * dpr);
+      if (canvas.width !== w || canvas.height !== h){
+        canvas.width = w; canvas.height = h;
+      }
+      ctx.setTransform(dpr,0,0,dpr,0,0); // ritar i CSS
+    }
+
+    /* pistol o snö */
+    function makeFlake(){
+      const w = window.innerWidth, h = window.innerHeight;
+      return { x: Math.random()*w, y: Math.random()*h - h, r: Math.random()*2 + 1, vy: Math.random()*0.6 + 0.4, vx: (Math.random()-0.5)*0.6, a: Math.random()*0.4 + 0.6 };
+    }
+    function makeEmoji(){
+      const w = window.innerWidth, h = window.innerHeight;
+      return { x: Math.random()*w, y: Math.random()*h - h, s: Math.random()*16 + 18, vy: Math.random()*0.8 + 0.6, vx: (Math.random()-0.5)*0.7, a: 1 };
+    }
+
+    function syncCounts(){
+      const ds = desiredSnow - snow.length; if (ds>0){ for(let i=0;i<ds;i++) snow.push(makeFlake()); } else if (ds<0){ snow.splice(ds); }
+      const de = desiredEmoji - emojis.length; if (de>0){ for(let i=0;i<de;i++) emojis.push(makeEmoji()); } else if (de<0){ emojis.splice(de); }
+    }
+
+    let lastT = 0;
+    function tick(t){
+      if (desiredSnow===0 && desiredEmoji===0){ ctx.clearRect(0,0,canvas.width,canvas.height); requestAnimationFrame(tick); return; }
+      const dt = Math.min(33, t - lastT || 16); lastT = t;
+      const w = window.innerWidth, h = window.innerHeight;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      /* snöflingor */
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      for (let i=0;i<snow.length;i++){
+        const f = snow[i];
+        f.y += f.vy * (dt/16); f.x += f.vx * (dt/16);
+        if (f.y - f.r > h) { snow[i] = makeFlake(); snow[i].y = -f.r; }
+        if (f.x < -10) f.x = w+10; else if (f.x > w+10) f.x = -10;
+        ctx.globalAlpha = f.a;
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
+      }
+
+      /* pistol */
+      const emojiChar = '🔫';
+      ctx.font = '24px system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji';
+      for (let i=0;i<emojis.length;i++){
+        const e = emojis[i];
+        e.y += e.vy * (dt/16); e.x += e.vx * (dt/16);
+        if (e.y - e.s > h) { emojis[i] = makeEmoji(); emojis[i].y = -e.s; }
+        if (e.x < -20) e.x = w+20; else if (e.x > w+20) e.x = -20;
+        ctx.globalAlpha = 0.95; ctx.font = `${e.s}px system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji`;
+        ctx.fillText(emojiChar, e.x, e.y);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    function initFX(){ resize(); syncCounts(); requestAnimationFrame(tick); }
+
+    window.addEventListener('resize', resize);
+    rangeSnow.addEventListener('input', () => { desiredSnow = parseInt(rangeSnow.value, 10); labelSnow.textContent = desiredSnow; syncCounts(); });
+    rangeEmoji.addEventListener('input', () => { desiredEmoji = parseInt(rangeEmoji.value, 10); labelEmoji.textContent = desiredEmoji; syncCounts(); });
+
+    /* prova URL override */
+    const qsSnow = new URLSearchParams(location.search).get('snow');
+    if (qsSnow) { desiredSnow = Math.max(0, Math.min(500, parseInt(qsSnow,10)||0)); rangeSnow.value = desiredSnow; labelSnow.textContent = desiredSnow; }
+
+    initFX();
+  })();
+
+  </script>
+</body>
+</html>
