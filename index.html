@@ -7,7 +7,6 @@
   <meta name="description" content="Rolkalender" />
   <style>
     :root{
-      /* colors */
       --bg1:#06150e;
       --bg2:#0b2a1d;
       --card:#6b0f0f;
@@ -23,39 +22,43 @@
     header p{margin:0;opacity:.9}
     .wrap{max-width:980px;margin:0 auto;padding:8px 16px 28px}
 
-    /* grid */
     .grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
     @media (max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
     @media (max-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
 
-    /* luckor o flap effekt */
     .door{position:relative;aspect-ratio:1/1;border-radius:16px;perspective:800px;isolation:isolate;box-shadow:0 10px 26px rgba(0,0,0,.35);transform:translateY(0);transition:transform .15s ease}
     .door:hover{transform:translateY(-2px)}
     .panel{pointer-events:none;position:absolute;inset:0;background:radial-gradient(140% 100% at 10% 10%, #9a1b1b, var(--card));border-radius:16px;border:1px solid rgba(255,255,255,.06)}
     .flap{pointer-events:none;position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.25));transform-origin:left center;transform:rotateY(0deg);transition:transform .8s cubic-bezier(.2,.8,.2,1), filter .3s ease}
     .door.open .flap{transform:rotateY(-160deg); filter:brightness(1.05)}
-    .num{position:absolute;top:10px;left:10px;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--gold);font-weight:700;letter-spacing:.3px;font-size:14px}
+    .num{position:absolute;top:10px;left:10px;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--gold);font-weight:700;letter-spacing:.3px;font-size:14px;z-index: 5}
     .label{position:absolute;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));font-size:14px}
     .door.locked .panel{filter:saturate(.6) brightness(.9)}
     .door.locked .label::after{content:" 🔒 "}
 
-    button.reset{all:unset;position:absolute;inset:0;z-index:3;cursor:pointer;border-radius:16px;display:block;width:100%;height:100%}
+    .gift-wrap{position:absolute;inset:0;background:var(--red);border-radius:16px;z-index:4;transition:opacity .4s ease, transform .4s ease;display:flex;align-items:center;justify-content:center}
+    .gift-wrap::before{content:"";position:absolute;width:20%;height:100%;background:var(--gold);box-shadow:0 0 5px rgba(0,0,0,0.3)}
+    .gift-wrap::after{content:"";position:absolute;height:20%;width:100%;background:var(--gold);box-shadow:0 0 5px rgba(0,0,0,0.3)}
+    .door.open .gift-wrap{opacity:0;transform:scale(1.1);pointer-events:none}
 
-    /* modalitet */
-    dialog{border:none;border-radius:18px;max-width:min(760px,95vw);padding:0;background:#0b0f1a;color:#fff;overflow:hidden}
+    button.reset{all:unset;position:absolute;inset:0;z-index:6;cursor:pointer;border-radius:16px;display:block;width:100%;height:100%}
+
+    dialog{border:none;border-radius:18px;max-width:min(1000px,95vw);padding:0;background:#141414;color:#fff;overflow:hidden}
     dialog::backdrop{background:rgba(0,0,0,.55)}
-    .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#10182a;border-bottom:1px solid #1e2b4a}
+    .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#eba76b;border-bottom:1px solid #581616}
     .mbody{padding:16px}
-    .btn{appearance:none;border:0;background:#2a3b66;color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .mtext{margin-top:12px;line-height:1.5;color:#ccd6f6}
+    .btn{appearance:none;border:0;background:#2a3b66;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
     .btn:hover{filter:brightness(1.08)}
+    .controls-group{display:flex;gap:8px}
+    
     img,video,iframe{width:100%;height:auto;border-radius:10px}
     audio{width:100%}
 
     footer{opacity:.8;text-align:center;padding:20px;font-size:13px}
 
-    /* kontrollpanel för snow etc */
     #snowCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
-    .controls{position:fixed;left:12px;bottom:12px;z-index:5;background:#10182acc;border:1px solid #1e2b4a;padding:10px 12px;border-radius:12px;color:#fff;backdrop-filter:blur(6px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:min(96vw,560px)}
+    .controls{position:fixed;left:12px;bottom:12px;z-index:50;background:#10182acc;border:1px solid #1e2b4a;padding:10px 12px;border-radius:12px;color:#fff;backdrop-filter:blur(6px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:min(96vw,560px)}
     .controls label{display:flex;align-items:center;gap:6px;font-size:14px}
     .controls input[type=range]{width:140px}
     .ribbon{position:relative;display:inline-block;margin-top:10px;padding:6px 10px 6px 26px;background:linear-gradient(90deg,var(--green),#0da855);border-radius:999px;color:#08210f;font-weight:700}
@@ -84,10 +87,6 @@
         <input id="emojiRange" type="range" min="0" max="300" value="0" aria-label="Emoji count">
         <span id="emojiCount" class="mono">0</span>
     </label>
-
-    <label> Test mode
-        <input id="unlockSwitch" type="checkbox" class="switch" checked>
-    </label>
   </div>
 
 
@@ -104,7 +103,12 @@
   <dialog id="modal" aria-modal="true">
     <div class="mhead">
       <strong id="modalTitle">Treat</strong>
-      <button class="btn" id="closeBtn">Close</button>
+      <div class="controls-group">
+        <button class="btn" id="narratorBtn" aria-label="Toggle Narration">
+         <span id="narratorIcon">🔊</span> Mute gabbe 🙄 
+        </button>
+        <button class="btn" id="closeBtn">Close</button>
+      </div>
     </div>
     <div class="mbody" id="modalBody"></div>
   </dialog>
@@ -113,20 +117,23 @@
 
   <audio id="jingle" preload="auto" src="jingle.mp3"></audio>
   <audio id="laugh" preload="auto" src="rol.mp3" loop></audio>
+  <audio id="narrationPlayer" preload="auto"></audio>
 
   <script>
   const TREAT_DATA = [
-    { day: 1, type: 'audio', title: 'Suneet Christmas Mental Breakdown', src: 'treats/day1.mp3' },
-    { day: 2, type: 'image', title: 'Khraniteli', src: 'treats/day2.png' },
-    { day: 3, type: 'video', title: 'Erobb wants to know where Santa is', src: 'treats/wheresanta.mp4' }
+    { 
+      day: 1, 
+      type: 'image', 
+      title: 'Day 1 (Gabbes Version)', 
+      src: 'treats/day1.png',
+      text: 'A festive art piece by Gablo Picassuh.',
+      narration: 'narration/day1_narration.mp3'
+    }
   ];
 
-  /* timeconfig om det behövs */
   const LOCK_TZ = 'Europe/Stockholm';
   const START_MONTH = 12;
   const TOTAL_DOORS = 24;
-  let UNLOCK_OVERRIDE = true;
-  const DEBUG_UNLOCK_ALL = new URLSearchParams(location.search).has('debug');
 
   function todayInTZ(tz){
     const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' });
@@ -135,7 +142,6 @@
     return { y:+get('year'), m:+get('month'), d:+get('day') };
   }
   function isUnlocked(day){
-    if (UNLOCK_OVERRIDE || DEBUG_UNLOCK_ALL) return true;
     const { m, d } = todayInTZ(LOCK_TZ);
     return (m > START_MONTH) || (m === START_MONTH && d >= day);
   }
@@ -148,19 +154,37 @@
     return e;
   }
 
-  /* helpers, fixa fler */
   const modal = document.getElementById('modal');
   const modalBody = document.getElementById('modalBody');
   const modalTitle = document.getElementById('modalTitle');
+  const narrationPlayer = document.getElementById('narrationPlayer');
+  const narratorBtn = document.getElementById('narratorBtn');
+  const narratorIcon = document.getElementById('narratorIcon');
   let lastOpenedCard = null;
+  let isMuted = false;
+
+  narratorBtn.onclick = () => {
+    isMuted = !isMuted;
+    narratorIcon.textContent = isMuted ? '🔇' : '🔊';
+    if(isMuted) {
+        narrationPlayer.pause();
+    } else if (narrationPlayer.src && !narrationPlayer.paused) {
+        
+    } else if (narrationPlayer.src) {
+        narrationPlayer.play().catch(()=>{});
+    }
+  };
+
   document.getElementById('closeBtn').onclick = () => {
     modalBody.querySelectorAll('audio, video').forEach(el => {
         el.pause();
         el.currentTime = 0;
     });
+    narrationPlayer.pause();
+    narrationPlayer.currentTime = 0;
 
     modalBody.querySelectorAll('iframe').forEach(f => {
-        f.src = f.src; // reload stoppar playback
+        f.src = f.src; 
     });
 
     modal.close();
@@ -173,9 +197,11 @@
   function showTreat(treat){
     modalTitle.textContent = treat.title || `Dag ${treat.day}`;
     modalBody.innerHTML = '';
-    /* warpade modals, fixa */
+    
     if (treat.type === 'image') {
-      modalBody.append(el('img', { alt: treat.title||'' , src: treat.src, loading:'lazy' }));
+      const img = el('img', { alt: treat.title||'' , src: treat.src, loading:'lazy' });
+      const link = el('a', { href: treat.src, target: '_blank', title: 'Click to enjoy festivity in intended size' }, img);
+      modalBody.append(link);
     } else if (treat.type === 'audio') {
       modalBody.append(el('audio', { controls: true, src: treat.src }));
       modalBody.append(el('p', {}, el('a', { href: treat.src, download: '' })));
@@ -191,17 +217,30 @@
     } else {
       modalBody.append(el('p', {}, 'Unknown treat type.'));
     }
+
+    if (treat.text) {
+      modalBody.append(el('div', { class: 'mtext' }, treat.text));
+    }
+
     modal.showModal();
   }
 
-  /* luckobening animation, fixa */
   const jingle = document.getElementById('jingle');
   function onDoorClick(card, treat, unlocked){
     if (!unlocked) return;
     lastOpenedCard = card;
     card.classList.add('open');
-    jingle && jingle.play().catch(()=>{});
-    setTimeout(()=> showTreat(treat), 380);
+    
+    if (jingle) jingle.play().catch(()=>{});
+    
+    if (treat.narration) {
+        narrationPlayer.src = treat.narration;
+        if(!isMuted) {
+            narrationPlayer.play().catch(()=>{});
+        }
+    }
+
+    setTimeout(()=> showTreat(treat), 600);
   }
 
   function renderGrid(){
@@ -212,16 +251,21 @@
     for (let day=1; day<=TOTAL_DOORS; day++){
       const unlocked = isUnlocked(day);
       const treat = byDay.get(day) || { day, type:'page', title:`Day ${day}`, src:`treats/day${day}.html` };
-      /* flap ganska scuffed */
+      
       const flap = el('div', { class:'flap' });
       const displayTitle = unlocked ? (treat.title || `Lucka ${day}`) : `Lucka ${day}`;
       const content = el('div', { class:'panel' }, [
-        el('div', { class:'num' }, `Lucka ${day}`),
         el('div', { class:'label' }, displayTitle)
       ]);
+      
+      const wrap = unlocked ? el('div', { class: 'gift-wrap' }) : null;
 
-
-      const inner = el('div', { class:'door'+(unlocked?'':' locked') }, [content, flap]);
+      const inner = el('div', { class:'door'+(unlocked?'':' locked') }, [
+        el('div', { class:'num' }, `Lucka ${day}`),
+        content, 
+        flap,
+        wrap
+      ]);
       const button = el('button', { class:'reset', 'aria-label': unlocked?`Open day ${day}`:`Day ${day} locked`,
         onClick: ()=> onDoorClick(inner, treat, unlocked)
       });
@@ -237,7 +281,6 @@
 
   init();
 
-  /* behövs för override, ganska decrepit */
   (function(){
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const canvas = document.getElementById('snowCanvas');
@@ -245,8 +288,6 @@
     const labelSnow = document.getElementById('snowCount');
     const rangeEmoji = document.getElementById('emojiRange');
     const labelEmoji = document.getElementById('emojiCount');
-    const unlockSwitch = document.getElementById('unlockSwitch');
-    unlockSwitch.addEventListener('change', ()=>{ UNLOCK_OVERRIDE = unlockSwitch.checked; renderGrid(); });
 
     const laughSwitch = document.getElementById('laughSwitch');
     const laugh = document.getElementById('laugh');
@@ -275,10 +316,9 @@
       if (canvas.width !== w || canvas.height !== h){
         canvas.width = w; canvas.height = h;
       }
-      ctx.setTransform(dpr,0,0,dpr,0,0); // ritar i CSS
+      ctx.setTransform(dpr,0,0,dpr,0,0); 
     }
 
-    /* pistol o snö */
     function makeFlake(){
       const w = window.innerWidth, h = window.innerHeight;
       return { x: Math.random()*w, y: Math.random()*h - h, r: Math.random()*2 + 1, vy: Math.random()*0.6 + 0.4, vx: (Math.random()-0.5)*0.6, a: Math.random()*0.4 + 0.6 };
@@ -300,7 +340,6 @@
       const w = window.innerWidth, h = window.innerHeight;
       ctx.clearRect(0,0,canvas.width,canvas.height);
 
-      /* snöflingor */
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
       for (let i=0;i<snow.length;i++){
         const f = snow[i];
@@ -311,7 +350,6 @@
         ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
       }
 
-      /* pistol */
       const emojiChar = '🔫';
       ctx.font = '24px system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji';
       for (let i=0;i<emojis.length;i++){
@@ -332,7 +370,6 @@
     rangeSnow.addEventListener('input', () => { desiredSnow = parseInt(rangeSnow.value, 10); labelSnow.textContent = desiredSnow; syncCounts(); });
     rangeEmoji.addEventListener('input', () => { desiredEmoji = parseInt(rangeEmoji.value, 10); labelEmoji.textContent = desiredEmoji; syncCounts(); });
 
-    /* prova URL override */
     const qsSnow = new URLSearchParams(location.search).get('snow');
     if (qsSnow) { desiredSnow = Math.max(0, Math.min(500, parseInt(qsSnow,10)||0)); rangeSnow.value = desiredSnow; labelSnow.textContent = desiredSnow; }
 
