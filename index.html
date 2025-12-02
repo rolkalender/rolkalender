@@ -124,11 +124,24 @@
     { 
       day: 1, 
       type: 'image', 
-      title: 'Day 1 (Gabbes Version)', 
+      title: "Day 1 (Gabbe's Version)", 
       src: 'treats/day1.png',
       text: 'A festive art piece by Gablo Picassuh.',
       narration: 'narration/day1_narration.mp3'
+    },
+    {
+      day: 2,
+      type: 'image',
+      title: "Day 2: Goobeng (David's Version)",
+      src: 'goobeng.jpg',
+      text: `
+        <div style="margin-top: 10px;">
+          <audio controls src="goobeng.mp3" style="width: 100%"></audio>
+        </div>
+        <p>Happy December 2nd! A festive, tropical song from David about his childhood area he holds dearest.</p>
+      `,
     }
+
   ];
 
   const LOCK_TZ = 'Europe/Stockholm';
@@ -232,7 +245,10 @@
     }
 
     if (treat.text) {
-      modalBody.append(el('div', { class: 'mtext' }, treat.text));
+      const textDiv = document.createElement('div');
+      textDiv.className = 'mtext';
+      textDiv.innerHTML = treat.text; 
+      modalBody.append(textDiv);
     }
 
     modal.showModal();
