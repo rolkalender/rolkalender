@@ -32,18 +32,45 @@
     .flap{pointer-events:none;position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.25));transform-origin:left center;transform:rotateY(0deg);transition:transform .8s cubic-bezier(.2,.8,.2,1), filter .3s ease}
     .door.open .flap{transform:rotateY(-160deg); filter:brightness(1.05)}
     .num{position:absolute;top:10px;left:10px;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.35);color:var(--gold);font-weight:700;letter-spacing:.3px;font-size:14px;z-index: 5}
-    .label{position:absolute;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));font-size:14px}
+    .label{
+        position:absolute;
+        bottom:0;
+        left:0;
+        right:0;
+        padding:12px;
+        background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));
+        font-size:14px;
+        z-index: 5;
+      }
     .door.locked .panel{filter:saturate(.6) brightness(.9)}
     .door.locked .label::after{content:" 🔒 "}
 
     .gift-wrap{position:absolute;inset:0;background:var(--red);border-radius:16px;z-index:4;transition:opacity .4s ease, transform .4s ease;display:flex;align-items:center;justify-content:center}
-    .gift-wrap::before{content:"";position:absolute;width:20%;height:100%;background:var(--gold);box-shadow:0 0 5px rgba(0,0,0,0.3)}
-    .gift-wrap::after{content:"";position:absolute;height:20%;width:100%;background:var(--gold);box-shadow:0 0 5px rgba(0,0,0,0.3)}
+    .gift-wrap::before{content:"";position:absolute;width:20%;height:100%;background:var(--green);box-shadow:0 0 5px rgba(0,0,0,0.3)}
+    .gift-wrap::after{content:"";position:absolute;height:20%;width:100%;background:var(--green);box-shadow:0 0 5px rgba(0,0,0,0.3)}
     .door.open .gift-wrap{opacity:0;transform:scale(1.1);pointer-events:none}
 
     button.reset{all:unset;position:absolute;inset:0;z-index:6;cursor:pointer;border-radius:16px;display:block;width:100%;height:100%}
 
-    dialog{border:none;border-radius:18px;max-width:min(1000px,95vw);padding:0;background:#141414;color:#fff;overflow:hidden}
+    dialog{
+        border:none;
+        border-radius: 18px;
+        max-width:min(1000px,95vw);
+        padding:0;
+        background:#141414;
+        color:#fff;
+        overflow:hidden;
+        min-height: 600px;
+    }
+    .mbody{
+        padding:16px;
+        width:auto;
+    }
+    img,video,iframe{
+      width:100%;
+      height:auto;
+      border-radius:10px
+    }
     dialog::backdrop{background:rgba(0,0,0,.55)}
     .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#eba76b;border-bottom:1px solid #581616}
     .mbody{padding:16px}
@@ -124,7 +151,7 @@
     { 
       day: 1, 
       type: 'image', 
-      title: "Day 1 (Gabbe's Version)", 
+      title: "Picasso Art (Gabbe's Version)", 
       src: 'treats/day1.png',
       text: 'A festive art piece by Gablo Picassuh.',
       narration: 'narration/day1_narration.mp3'
@@ -132,7 +159,7 @@
     {
       day: 2,
       type: 'image',
-      title: "Day 2: Goobeng (David's Version)",
+      title: "GOOBENG (David's Version)",
       src: 'goobeng.jpg',
       noLink: true,
       text: `
@@ -141,6 +168,11 @@
         </div>
         <p>Happy December 2nd! A festive, tropical song from David about his childhood area he holds dearest.</p>
       `,
+    },
+    {
+      day: 3,
+      type: 'youtube',
+      
     }
   ];
 
@@ -241,7 +273,14 @@
       modalBody.append(v);
       modalBody.append(el('p', {}, el('a', { href: treat.src, download: '' })));
     } else if (treat.type === 'youtube') {
-      modalBody.append(el('iframe', { width: '560', height:'315', allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture', allowfullscreen:'', src: treat.src }));
+      modalBody.append(el('iframe', { 
+        width: '100%',
+        height:'auto',
+        style: 'aspect-ratio: 16 / 9; min-height: 350px;',
+        allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+        allowfullscreen:'',
+        src: treat.src
+      }));
     } else if (treat.type === 'page' || treat.type === 'game') {
       modalBody.append(el('iframe', { src: treat.src, style:'min-height:60vh' }));
     } else {
@@ -286,9 +325,12 @@
       const treat = byDay.get(day) || { day, type:'page', title:`Day ${day}`, src:`treats/day${day}.html` };
       
       const flap = el('div', { class:'flap' });
-      const displayTitle = unlocked ? (treat.title || `Lucka ${day}`) : `Lucka ${day}`;
+      let labelText = `Lucka ${day}`;
+      if (unlocked){
+        labelText = treat.title || `Lucka ${day}`;
+      }
       const content = el('div', { class:'panel' }, [
-        el('div', { class:'label' }, displayTitle)
+        el('div', { class:'label' }, labelText)
       ]);
       
       const wrap = unlocked ? el('div', { class: 'gift-wrap' }) : null;
