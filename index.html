@@ -134,16 +134,29 @@
   const LOCK_TZ = 'Europe/Stockholm';
   const START_MONTH = 12;
   const TOTAL_DOORS = 24;
+  const UNLOCK_HOUR = 18;
 
   function todayInTZ(tz){
-    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' });
+    const fmt = new Intl.DateTimeFormat('en-CA', { 
+      timeZone: tz, 
+      year:'numeric', 
+      month:'2-digit', 
+      day:'2-digit',
+      hour: 'numeric',
+      hourCycle: 'h23'
+    });
     const parts = fmt.formatToParts(new Date());
     const get = k => parts.find(p=>p.type===k).value;
-    return { y:+get('year'), m:+get('month'), d:+get('day') };
+    return { y:+get('year'), m:+get('month'), d:+get('day'), h:+get('hour') };
   }
   function isUnlocked(day){
-    const { m, d } = todayInTZ(LOCK_TZ);
-    return (m > START_MONTH) || (m === START_MONTH && d >= day);
+    const { m, d, h } = todayInTZ(LOCK_TZ);
+    if (m !== START_MONTH) return false;
+    if (d > day) return true;
+    if (d == day) {
+        return h>= UNLOCK_HOUR;
+    }
+    return false;
   }
   function el(tag, attrs={}, children=[]) {
     const e=document.createElement(tag);
