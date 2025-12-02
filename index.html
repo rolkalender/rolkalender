@@ -134,6 +134,7 @@
       type: 'image',
       title: "Day 2: Goobeng (David's Version)",
       src: 'goobeng.jpg',
+      noLink: true,
       text: `
         <div style="margin-top: 10px;">
           <audio controls src="goobeng.mp3" style="width: 100%"></audio>
@@ -141,7 +142,6 @@
         <p>Happy December 2nd! A festive, tropical song from David about his childhood area he holds dearest.</p>
       `,
     }
-
   ];
 
   const LOCK_TZ = 'Europe/Stockholm';
@@ -226,8 +226,12 @@
     
     if (treat.type === 'image') {
       const img = el('img', { alt: treat.title||'' , src: treat.src, loading:'lazy' });
-      const link = el('a', { href: treat.src, target: '_blank', title: 'Click to enjoy festivity in intended size' }, img);
-      modalBody.append(link);
+      if (treat.noLink){
+        modalBody.append(img);
+      } else {
+        const link = el('a', { href: treat.src, target: '_blank', title: 'Click to enjoy festivity in intended size' }, img);
+        modalBody.append(link);
+      }
     } else if (treat.type === 'audio') {
       modalBody.append(el('audio', { controls: true, src: treat.src }));
       modalBody.append(el('p', {}, el('a', { href: treat.src, download: '' })));
