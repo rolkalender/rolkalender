@@ -1,11 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>pistolkalender</title>
   <meta name="description" content="Rolkalender" />
   <style>
+    model-viewer {
+      width: 100%;
+      height: 400px;
+      background-color: transparent; 
+      border-radius: 8px;
+    }
+
       .poll-container {
         position: fixed;
         top: 50%;
@@ -85,7 +93,7 @@
       --red:#c81e1e;
       --green:#22c55e;
     }
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#eef3ff}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(circle at center, #164232 0%, #020805 100%);color:#eef3ff}
     header{max-width:980px;margin:0 auto;padding:28px 16px;text-align:center}
     header h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}
     header p{margin:0;opacity:.9}
@@ -246,7 +254,15 @@
       src: 'https://www.youtube.com/embed/-iaYLJMX2KU',
       text: "A festive gaming montage from the most epic gamer at Rolkalender Studios: suneet_p. Do they (gamers) know it's Christmas time? Let's find out! ",
       narration: 'narration/openlucka.mp3'
-    }
+    },
+    { 
+      day: 4, 
+      type: 'model', 
+      title: "Critter Taxidermy (Victor's Version)", 
+      src: 'treats/frankenFrog.blend2.glb',
+      text: "Devastated by the tragic loss of his pet Fritjof (Named after Karl Fritjof Lager), Dr. Victor Baxter spent forty days and forty nights stitching her back together in a lab, resulting in a festive patchwork for us all to observe. ",
+      narration: 'narration/day4.mp3' 
+    },
   ];
 
   const LOCK_TZ = 'Europe/Stockholm';
@@ -422,6 +438,16 @@
         allowfullscreen:'',
         src: treat.src
       }));
+    } else if (treat.type === 'model') {
+      modalBody.append(el('model-viewer', {
+        src: treat.src,
+        alt: treat.title || '3D model',
+        'auto-rotate': '',
+        'camera-controls': '',
+        'autoplay': '',
+        'shadow-intensity': '1',
+        style: 'width: 100%; height: 50vh; border-radius: 8px; background: radial-gradient(circle at center, #254d3d 0%, #081610 100%);'
+      }));
     } else if (treat.type === 'poll'){
         modalBody.append(el('iframe', {
           src: treat.src,
@@ -457,6 +483,11 @@
     
     if (treat.narration) {
         narrationPlayer.src = treat.narration;
+        if (treat.narration === 'narration/day4.mp3') {
+            narrationPlayer.volume = 0.05;
+        } else {
+            narrationPlayer.volume = 1.0;
+        }
         if(!isMuted) {
             narrationPlayer.play().catch(()=>{});
         }
