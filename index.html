@@ -263,6 +263,33 @@
       text: "Devastated by the tragic loss of his pet Fritjof (Named after Karl Fritjof Lager), Dr. Victor Baxter spent forty days and forty nights stitching her back together in a lab, resulting in a festive patchwork for us all to observe. ",
       narration: 'narration/day4.mp3' 
     },
+    {
+      day: 5,
+      type: 'custom',
+      title: "Gabe Smok & Gabe Smok duett",
+      text: `
+          <div style="width: 105vw; max-width: 700px; margin: 0 auto;">
+              
+              <div style="text-align: center; margin-bottom: 15px;">
+                  <img src="treats/day5.png" style="max-width: 400px; width: 100%; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+              </div>
+
+              <div style="margin-top: 10px; text-align: center;">
+                <audio id="day5-audio" controls src="treats/day5.mp3" style="width: 100%"></audio>
+                
+                <div style="height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                  <button id="clap-btn" class="btn" style="display: none; transform: scale(0); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--gold); color: #000; font-weight: 800; font-size: 18px; padding: 12px 24px;">
+                      👏 Join in on the clapping!
+                  </button>
+                </div>
+                
+                <audio id="clap-sfx" src="treats/clap.mp3"></audio>
+              </div>
+              <p>No description needed.</p>
+          </div>
+        `,
+      specialFeature: 'clap' 
+    },
   ];
 
   const LOCK_TZ = 'Europe/Stockholm';
@@ -457,6 +484,8 @@
           title: 'Poll'
         }))
     }
+    else if (treat.type === 'custom') {
+    }
      else if (treat.type === 'page' || treat.type === 'game') {
       modalBody.append(el('iframe', { src: treat.src, style:'min-height:60vh' }));
     } else {
@@ -471,6 +500,9 @@
     }
 
     modal.showModal();
+    if (treat.specialFeature === 'clap') {
+        initClapFeature();
+    }
   }
 
   const jingle = document.getElementById('jingle');
@@ -494,6 +526,38 @@
     }
 
     setTimeout(()=> showTreat(treat), 600);
+  }
+
+  function initClapFeature() {
+    const audio = document.getElementById('day5-audio');
+    const btn = document.getElementById('clap-btn');
+    const sfx = document.getElementById('clap-sfx');
+
+    if (!audio || !btn) return;
+    audio.volume = 0.3
+    const CLAP_TIME = 220; 
+
+    audio.ontimeupdate = () => {
+      if (audio.currentTime >= CLAP_TIME) {
+        if (btn.style.display === 'none') {
+            btn.style.display = 'inline-flex';
+            requestAnimationFrame(() => {
+                btn.style.transform = 'scale(1)';
+            });
+        }
+      } else {
+        btn.style.transform = 'scale(0)';
+        btn.style.display = 'none';
+      }
+    };
+    btn.onclick = () => {
+      const soundClone = sfx.cloneNode();
+      soundClone.volume = 1;
+      soundClone.play().catch(() => {});
+      
+      btn.style.transform = 'scale(0.9)';
+      setTimeout(() => btn.style.transform = 'scale(1)', 100);
+    };
   }
 
   function renderGrid(){
