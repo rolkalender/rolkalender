@@ -82,6 +82,68 @@
         .poll-container { display: none; }
       }
       */
+      .mobile-widget-controls{
+        display: none;
+      }
+      @media (max-width: 1300px){
+        .mobile-widget-controls{
+          display: flex;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          flex-direction: column;
+          gap: 10px;
+          z-index: 100;
+        }
+        .widget-btn{
+          background: var(--card);
+          border: 2px solid var(--gold);
+          color: var(--gold);
+          padding: 12px 16px;
+          border-radius: 50px;
+          font-weight: bold;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          transition: transform 0.2s;
+        }
+        .widget-btn:active {transform: scale(0.95);}
+        /* mobile pol */
+        .poll-container {
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 90%;
+          max-width: 350px;
+          box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7);
+        }
+        .poll-container.mobile-active{
+          display: block;
+          animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* mobile weel */
+        .rol-widget-container{
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          right: auto;
+          transform: translate(-50%, -50%);
+          z-index: 101;
+        }
+        .rol-widget-container.mobile-active{
+          display: block;
+        }
+        @keyframes moveRight{
+          0% { transform: translate(-50%, -50%); opacity: 1;}
+          100% {transform: translate(100vw, -50%); opacity: 0;}
+        }
+      }
+      @keyframes popIn {
+        from{opacity: 0; transform: translate(-50%, -45%) scale(0.9);}
+        to {opacity: 1; transform: translate(-50%, -50%)scale(1);}
+      }
     
     :root{
       --bg1:#06150e;
@@ -300,6 +362,18 @@
     </div>
     <div class="mbody" id="modalBody"></div>
   </dialog>
+
+  <div class="mobile-widget-controls">
+    <button id="mobilePollBtn" class="widget-btn" aria-label="Rol Pol">
+      Rol Pol
+    </button>
+    <button id="mobileRolBtn" class="widget-btn" aria-label="Rol the Wheel">
+      Rol the Weel
+    </button>
+  </div>
+
+  
+
 
   <footer>© gabdihundrafyrtiofem - <span id="year"></span></footer>
 
@@ -818,6 +892,48 @@
       }, 8000);
     });
   }
+
+  // mobile logic
+  const mobilePollBtn = document.getElementById('mobilePollBtn');
+  const mobileRolBtn = document.getElementById('mobileRolBtn');
+  const sidePoll = document.getElementById('sidePoll');
+  const rolWidget = document.getElementById('rolWidget');
+
+  // helper for widgets
+  function toggleMobileWidget(widget) {
+    // if open -> close
+    if (widget.classList.contains('mobile-active')) {
+      widget.classList.remove('mobile-active');
+      return;
+    }
+    // avoiding clutter
+    document.querySelectorAll('.mobile-active').forEach(el => el.classList.remove('mobile-active'));
+    widget.classList.add('mobile-active');
+  }
+  if (mobilePollBtn) {
+    mobilePollBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMobileWidget(sidePoll);
+    });
+  }
+  if (mobileRolBtn) {
+    mobileRolBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMobileWidget(rolWidget);
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth > 1300) return;
+
+    if (sidePoll.classList.contains('mobile-active') && !sidePoll.contains(e.target) && e.target !== mobilePollBtn) {
+      sidePoll.classList.remove('mobile-active');
+    }
+    if (rolWidget.classList.contains('mobile-active') && !rolWidget.contains(e.target) && e.target !== mobileRolBtn) {
+      if (!document.getElementById('rolWheel').classList.contains('rol-is-spinning')) {
+        rolWidget.classList.remove('mobile-active');
+      }
+    }
+  });
 
   </script>
 </body>
