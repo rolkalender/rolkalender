@@ -26,7 +26,7 @@
         border: 1px solid #1e2b4a;
         border-radius: 16px;
         color: #fff;
-        z-index: 40; /* below z modal */
+        z-index: 40;
         box-shadow: 0 4px 20px rgba(0,0,0,0.5);
       }
       .super-poll-title {
@@ -173,10 +173,87 @@
     .switch:checked:before{transform:translateX(18px)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
     .controls{display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:240px}
+
+    /* ROL THE WEEL */
+    .rol-widget-container {
+      position: fixed;
+      top: 30%;
+      right: 12%;
+      transform: translateY(-50%);
+      width: 300px;
+      z-index: 45;
+      text-align: center;
+    }
+    .speech-bubble {
+      background: #fff;
+      color: #000;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-family: 'Comic Sans MS', 'Comic Sans';
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 10px solid #fff;
+    }
+    .the-wheel {
+      width: 300px;
+      height: 300px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+    }
+    .the-wheel:hover {
+      transform: scale(1.05);
+    }
+    
+    /* js animations for roly */
+    .rol-is-leaving {
+      animation: moveRight 6s ease-in forwards;
+      animation-delay: 8s;
+    }
+    .rol-is-spinning {
+      animation: spinWheel 10s linear forwards;
+    }
+    @keyframes moveRight {
+      0% { transform: translate(0, -50%); opacity: 1; }
+      100% { transform: translate(120vw, -50%); opacity: 0; }
+    }
+    @keyframes spinWheel {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(4000deg); }
+    }
+    @media (max-width: 1300px) {
+      .rol-widget-container { display: none; }
+    }
+
   </style>
 </head>
 <body>
   <div id="sidePoll" class="poll-container"></div>
+  <div id="rolWidget" class="rol-widget-container">
+    <img src="wheel/rol_dizzy.png" style="display:none;" alt="preload">
+    <div id="rolBubble" class="speech-bubble">
+      Hallo im Rol the Weel. Spin me to win a grand prize $$$!
+    </div>
+    <img id="rolWheel" src="wheel/rol_wheel.png" alt="Rol the Wheel" class="the-wheel">
+  </div>
   <canvas id="snowCanvas" aria-hidden="true"></canvas>
   <div class="controls" role="group" aria-label="Site controls">
     <label>❄️ Snow
@@ -695,6 +772,31 @@
 
     initFX();
   })();
+
+  // rol the WEEL logic
+  const rolWheel = document.getElementById('rolWheel');
+  const rolContainer = document.getElementById('rolWidget');
+  const rolBubble = document.getElementById('rolBubble');
+
+  if (rolWheel) {
+    rolWheel.addEventListener('click', () => {
+
+      rolWheel.classList.add('rol-is-spinning');
+
+      rolContainer.classList.add('rol-is-leaving');
+
+      rolBubble.style.opacity = '0';
+
+      setTimeout(() => {
+        rolWheel.src = "wheel/rol_dizzy.png";
+      }, 3000);
+
+      setTimeout(() => {
+        rolBubble.innerText = "ohh nooo, im rol'ing awaaayy!!!";
+        rolBubble.style.opacity = '1';
+      }, 8000);
+    });
+  }
 
   </script>
 </body>
