@@ -77,11 +77,11 @@
       }
       .poll-meta { display: flex; justify-content: space-between; opacity: 0.8; }
 
-      /* hide on small resolutions */
+      /* hide on small resolutions
       @media (max-width: 1300px) {
         .poll-container { display: none; }
       }
-      
+      */
     
     :root{
       --bg1:#06150e;
@@ -142,6 +142,8 @@
     .mbody{
         padding:16px;
         width:auto;
+        overflow-y: auto;
+        max-height: 80vh;
     }
     img,video,iframe{
       width:100%;
@@ -239,9 +241,13 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(4000deg); }
     }
+    /* hide on small reso
     @media (max-width: 1300px) {
       .rol-widget-container { display: none; }
     }
+    */
+
+
 
   </style>
 </head>
@@ -367,6 +373,14 @@
         `,
       specialFeature: 'clap' 
     },
+    {
+      day: 6,
+      type: 'image',
+      title: "Ein Tannenbaum (Julia's Version)",
+      src: "treats/day6.jpg",
+      text: "Rolkalenderns very own, precious christmas tree decorated by Julia, who seemingly was inspired by the decorating manner of a serial killer.",
+      narration: "narration/tannenbaum.mp3"
+    }
   ];
 
   const LOCK_TZ = 'Europe/Stockholm';
@@ -518,7 +532,12 @@
     modalBody.innerHTML = '';
     
     if (treat.type === 'image') {
-      const img = el('img', { alt: treat.title||'' , src: treat.src, loading:'lazy' });
+      const img = el('img', { 
+        alt: treat.title||'', 
+        src: treat.src, 
+        loading:'lazy',
+        style: 'max-height: 70vh; width: auto; max-width: 100%; display: block; margin: 0 auto;' 
+      });
       if (treat.noLink){
         modalBody.append(img);
       } else {
@@ -594,6 +613,8 @@
         narrationPlayer.src = treat.narration;
         if (treat.narration === 'narration/day4.mp3') {
             narrationPlayer.volume = 0.05;
+        } else if (treat.narration === 'narration/tannenbaum.mp3') {
+            narrationPlayer.volume = 0.15;
         } else {
             narrationPlayer.volume = 1.0;
         }
